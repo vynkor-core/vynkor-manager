@@ -1,0 +1,140 @@
+# REL-01: tag-driven vynm releases — static musl binaries + SHA256SUMS.
+#
+# Usage:
+#   bump [package] version in Cargo.toml, merge, then
+#   git tag v0.1.1 && git push origin v0.1.1
+#
+# Assets (names carry no version, so install.sh can use
+# /releases/latest/download/<asset> without an API call):
+#   vynm-<target>.tar.gz  vynm, licenses, README
+#   SHA256SUMS            what install.sh verifies before installing
+# Each archive also gets a GitHub build-provenance attestation:
+#   gh attestation verify vynm-x86_64-unknown-linux-musl.tar.gz -R vynkor-core/vynkor-manager
+#
+# A tag with a pre-release suffix (v0.2.0-rc.1) publishes a pre-release,
+# which /releases/latest skips.
+
+name: release
+
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+  # release assets ship stripped (~22M -> a fraction); debug builds untouched
+  CARGO_PROFILE_RELEASE_STRIP: symbols
+
+jobs:
+  check-version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Tag matches Cargo.toml version
+        run: |
+          want="${GITHUB_REF_NAME#v}"
+          have="$(cargo metadata --no-deps --format-version 1 \
+            | jq -r '.packages[] | select(.name == "vynkor-manager") | .version')"
+          if [[ "$want" != "$have" ]]; then
+            echo "::error::tag $GITHUB_REF_NAME != Cargo.toml version $have — bump Cargo.toml first"
+            exit 1
+          fi
+
+  build:
+    needs: check-version
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          # native runners for both arches: no cross/qemu; ring (via rustls)
+          # builds with the stock musl-gcc
+          - target: x86_64-unknown-linux-musl
+            runner: ubuntu-latest
+          - target: aarch64-unknown-linux-musl
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Install build deps
+        # protoc: vynkor-wire runs prost-build in its build script
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y --no-install-recommends musl-tools protobuf-compiler
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+
+      - name: Build
+        run: cargo build --release --locked --target ${{ matrix.target }} --bin vynm
+
+      - name: Smoke test (static, runs)
+        run: |
+          bin="target/${{ matrix.target }}/release/vynm"
+          file "$bin"
+          file "$bin" | grep -q 'statically linked\|static-pie linked'
+          "$bin" --version
+
+      - name: Package
+        run: |
+          name="vynm-${{ matrix.target }}"
+          mkdir -p "pkg/$name"
+          cp "target/${{ matrix.target }}/release/vynm" \
+             LICENSE-MIT LICENSE-APACHE README.md "pkg/$name/"
+          # flat archive: install.sh extracts and installs by basename
+          tar -C "pkg/$name" -czf "$name.tar.gz" .
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: vynm-${{ matrix.target }}
+          path: vynm-${{ matrix.target }}.tar.gz
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+
+      - name: Checksums
+        working-directory: dist
+        run: |
+          sha256sum vynm-*.tar.gz > SHA256SUMS
+          cat SHA256SUMS
+
+      - uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: dist/vynm-*.tar.gz
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prerelease=()
+          [[ "$GITHUB_REF_NAME" == *-* ]] && prerelease=(--prerelease)
+          gh release create "$GITHUB_REF_NAME" \
+            --repo "$GITHUB_REPOSITORY" \
+            --verify-tag \
+            --title "vynm ${GITHUB_REF_NAME}" \
+            --generate-notes \
+            "${prerelease[@]}" \
+            dist/vynm-*.tar.gz dist/SHA256SUMS

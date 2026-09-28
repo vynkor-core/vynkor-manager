@@ -10,8 +10,17 @@ registries.
 ## Install
 
 ```bash
-cargo install vynkor-manager   # provides `vynm`
+# prebuilt static binary (Linux x86_64/aarch64) together with the kernel,
+# sha256-verified, into ~/.local/bin:
+curl -fsSL https://raw.githubusercontent.com/vynkor-core/vynkor/develop/install.sh | bash
+
+# or from source (needs protoc):
+cargo install --git https://github.com/vynkor-core/vynkor-manager vynkor-manager
 ```
+
+Releases are tag-driven (`git tag vX.Y.Z`, see `.github/workflows/release.yml`)
+and ship `vynm-<target>.tar.gz` + `SHA256SUMS` with a build-provenance
+attestation.
 
 On first use vynm creates `~/.config/vyn/config.yaml` with the official
 plugin registry pre-filled and every field documented inline — that file is
