@@ -12,7 +12,7 @@ registries.
 ```bash
 # prebuilt static binary (Linux x86_64/aarch64) together with the kernel,
 # sha256-verified, into ~/.local/bin:
-curl -fsSL https://raw.githubusercontent.com/vynkor-core/vynkor/develop/install.sh | bash
+curl -fsSL https://github.com/vynkor-core/vynkor/releases/latest/download/install.sh | bash
 
 # or from source (needs protoc):
 cargo install --git https://github.com/vynkor-core/vynkor-manager vynkor-manager
