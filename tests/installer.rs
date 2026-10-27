@@ -575,7 +575,7 @@ fn make_zip_raw(dest: &Path, entries: &[(&str, &[u8], Option<u32>)]) {
     for (name, data, mode) in entries {
         // zip 2.x: writer-side permissions are unix_permissions()
         use zip::write::{ExtendedFileOptions, FileOptions};
-        let mut opts: FileOptions<'_, ExtendedFileOptions> =
+        let mut opts: FileOptions<'_, '_, ExtendedFileOptions> =
             FileOptions::default().compression_method(zip::CompressionMethod::Stored);
         if let Some(m) = mode {
             opts = opts.unix_permissions(*m);
