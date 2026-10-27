@@ -221,7 +221,7 @@ fn tampered_bundle_commits_nothing_and_cleans_staging() {
             SimpleFileOptions::default().compression_method(zip::CompressionMethod::Deflated);
         for i in 0..src_zip.len() {
             let mut file = src_zip.by_index(i).unwrap();
-            let name = file.name().to_string();
+            let name = file.name().unwrap().to_string();
             writer.start_file(name.as_str(), opts).unwrap();
             if name == format!("{BUNDLE_PLUGINS_PREFIX}alpha/payload.txt") {
                 writer.write_all(b"TAMPERED").unwrap();
