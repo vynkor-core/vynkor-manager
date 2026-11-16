@@ -772,7 +772,10 @@ pub fn extract_zip(
         let mut entry = zip
             .by_index(i)
             .map_err(|e| VynmError::Internal(format!("read zip entry: {e}")))?;
-        let name = entry.name().to_owned();
+        let name = entry
+            .name()
+            .map_err(|e| VynmError::Internal(format!("read zip entry name: {e}")))?
+            .into_owned();
 
         // Reject absolute paths, ".." components, and Windows prefix/root components.
         let candidate = Path::new(&name);
