@@ -178,11 +178,11 @@ fn extract_plugin_tree(
     let prefix = format!("{BUNDLE_PLUGINS_PREFIX}{slug}/");
     for i in 0..archive.len() {
         let mut file = archive.by_index(i).map_err(zip_err("open member"))?;
-        let Some(rel) = file
+        let name = file
             .name()
-            .strip_prefix(prefix.as_str())
-            .map(str::to_string)
-        else {
+            .map_err(zip_err("read member name"))?
+            .into_owned();
+        let Some(rel) = name.strip_prefix(prefix.as_str()).map(str::to_string) else {
             continue;
         };
         if rel.is_empty() {
@@ -191,8 +191,7 @@ fn extract_plugin_tree(
         let rel_path = Path::new(&rel);
         if rel_path.is_absolute() || rel.split('/').any(|c| c == "..") || rel.contains('\\') {
             return Err(VynmError::Verification(format!(
-                "bundle member '{}' escapes its plugin prefix — refusing",
-                file.name()
+                "bundle member '{name}' escapes its plugin prefix — refusing"
             )));
         }
         budget.0 += file.size();

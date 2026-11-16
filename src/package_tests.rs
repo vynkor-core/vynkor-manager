@@ -90,7 +90,7 @@ fn packages_dist_layout_and_upserts_signed_entry() {
     // the zip carries FLAT entries (basename only) and unpacks to a valid tree
     let mut zip = zip::ZipArchive::new(std::io::Cursor::new(fs::read(&archive).unwrap())).unwrap();
     let mut names: Vec<String> = (0..zip.len())
-        .map(|i| zip.by_index(i).unwrap().name().to_string())
+        .map(|i| zip.by_index(i).unwrap().name().unwrap().to_string())
         .collect();
     names.sort();
     assert_eq!(names, vec!["demo", "plugin.json"]);
@@ -224,7 +224,7 @@ fn files_allowlist_packages_declared_set_flat() {
     let archive = tmp.path().join("dist/full/versions/0.2.0/full-0.2.0.zip");
     let mut zip = zip::ZipArchive::new(std::io::Cursor::new(fs::read(archive).unwrap())).unwrap();
     let mut names: Vec<String> = (0..zip.len())
-        .map(|i| zip.by_index(i).unwrap().name().to_string())
+        .map(|i| zip.by_index(i).unwrap().name().unwrap().to_string())
         .collect();
     names.sort();
     assert_eq!(names, vec!["full", "plugin.json", "readme.txt"]);
@@ -297,7 +297,7 @@ fn src_zip_carries_prefixed_sources_when_cargo_present() {
     assert!(src_zip.is_file());
     let mut zip = zip::ZipArchive::new(std::io::Cursor::new(fs::read(src_zip).unwrap())).unwrap();
     let mut names: Vec<String> = (0..zip.len())
-        .map(|i| zip.by_index(i).unwrap().name().to_string())
+        .map(|i| zip.by_index(i).unwrap().name().unwrap().to_string())
         .collect();
     names.sort();
     assert_eq!(
