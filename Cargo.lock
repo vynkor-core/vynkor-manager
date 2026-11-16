@@ -1960,9 +1960,9 @@ dependencies = [
 
 [[package]]
 name = "vynkor-wire"
-version = "0.0.2"
+version = "0.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e9f4eb057c7b8710ef73eb259584f741ff6f99dfb8b8f4b2eb1b589c36fe025"
+checksum = "2cc9b45810e5366bc7c6b5b10d98800a1c58cba4a960d65c208ed8a21819f41b"
 dependencies = [
  "crc32fast",
  "hkdf",
