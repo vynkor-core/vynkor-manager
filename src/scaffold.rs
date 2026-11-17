@@ -8,7 +8,7 @@ use crate::error::VynmError;
 use crate::validate::validate_identifier;
 
 const TEMPLATE_PLUGIN_JSON: &str = include_str!("templates/new/plugin.json");
-const TEMPLATE_CARGO_TOML: &str = include_str!("templates/new/Cargo.toml");
+const TEMPLATE_CARGO_TOML: &str = include_str!("templates/new/Cargo.toml.tmpl");
 const TEMPLATE_MAIN_RS: &str = include_str!("templates/new/src_main.rs");
 const TEMPLATE_GITIGNORE: &str = "/target\n";
 const TEMPLATE_README: &str = include_str!("templates/new/README.md");
