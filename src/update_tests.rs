@@ -27,6 +27,8 @@ use crate::registry::RegistryEntry;
 
 fn doc_entry(slug: &str, version: &str) -> RegistryEntry {
     RegistryEntry {
+        category: String::new(),
+        tags: Vec::new(),
         id: slug.into(),
         slug: slug.into(),
         name: slug.into(),
@@ -54,6 +56,9 @@ fn pick_available_selects_max_semver_and_skips_revoked() {
     assert_eq!(sha, "deadbeef", "sha comes straight from the winning entry");
 
     doc.push(RegistryEntry {
+        category: String::new(),
+
+        tags: Vec::new(),
         version: "9.9.9".into(),
         status: "revoked".into(),
         ..doc_entry("db", "9.9.9")

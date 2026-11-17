@@ -284,6 +284,8 @@ fn version_pin_on_archive_is_a_hard_error() {
 
 fn entry(slug: &str, version: &str, status: &str) -> crate::registry::RegistryEntry {
     crate::registry::RegistryEntry {
+        category: String::new(),
+        tags: Vec::new(),
         id: slug.into(),
         slug: slug.into(),
         name: format!("the {slug} plugin"),

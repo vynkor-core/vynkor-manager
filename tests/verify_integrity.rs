@@ -44,6 +44,8 @@ fn build_archive(slug: &str, version: &str) -> (Vec<u8>, String) {
 
 fn unsigned_entry(slug: &str, version: &str, sha256: &str) -> RegistryEntry {
     RegistryEntry {
+        category: String::new(),
+        tags: Vec::new(),
         id: slug.into(),
         slug: slug.into(),
         name: slug.into(),

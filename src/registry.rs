@@ -63,6 +63,12 @@ pub struct RegistryEntry {
     /// how fresh the cache is (R10-03).
     #[serde(default = "default_status")]
     pub status: String,
+    /// Display-only catalog metadata (v2 `category` / `tags`); not part of
+    /// the signed message, so a store may show it but never trust it.
+    #[serde(default)]
+    pub category: String,
+    #[serde(default)]
+    pub tags: Vec<String>,
 }
 
 impl RegistryEntry {
@@ -338,6 +344,10 @@ struct MapPluginEntry {
     #[serde(default, alias = "sourceUrl")]
     source_url: String,
     #[serde(default)]
+    category: String,
+    #[serde(default)]
+    tags: Vec<String>,
+    #[serde(default)]
     versions: BTreeMap<String, MapVersion>,
 }
 
@@ -394,6 +404,8 @@ fn parse_registry_document(body: &str) -> Result<RegistryDocument, VynmError> {
                         max_kernel_version: v.max_kernel_version,
                         signature: v.signature,
                         status,
+                        category: plugin.category.clone(),
+                        tags: plugin.tags.clone(),
                     });
                 }
             }
