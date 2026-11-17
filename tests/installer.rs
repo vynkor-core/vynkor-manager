@@ -38,6 +38,8 @@ fn hex_encode(bytes: &[u8]) -> String {
 
 fn make_entry(slug: &str, min: &str, max: &str) -> RegistryEntry {
     RegistryEntry {
+        category: String::new(),
+        tags: Vec::new(),
         id: "001".into(),
         slug: slug.into(),
         name: slug.into(),

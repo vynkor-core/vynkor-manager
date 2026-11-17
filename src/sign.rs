@@ -41,6 +41,8 @@ pub fn entry_from_fields(
     max_kernel_version: &str,
 ) -> RegistryEntry {
     RegistryEntry {
+        category: String::new(),
+        tags: Vec::new(),
         id: String::new(),
         slug: slug.into(),
         name: String::new(),

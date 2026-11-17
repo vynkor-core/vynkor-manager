@@ -4,6 +4,8 @@ use crate::state::{InstalledEntry, InstalledState};
 
 fn make_entry(min: &str, max: &str) -> RegistryEntry {
     RegistryEntry {
+        category: String::new(),
+        tags: Vec::new(),
         id: "001".into(),
         slug: "stt-whisper".into(),
         name: "Whisper STT".into(),
@@ -454,6 +456,8 @@ fn v2_map_form_parses_flattens_and_folds_revoked_list() {
         "description": "chat",
         "permissions": [],
         "status": "beta",
+        "category": "ai",
+        "tags": ["llm", "chat"],
         "source_url": "https://example.com/ai-src.zip",
         "versions": {
           "0.1.0": {
@@ -487,11 +491,14 @@ fn v2_map_form_parses_flattens_and_folds_revoked_list() {
     assert_eq!(ai.status, "beta");
     assert_eq!(ai.archive_url, "https://example.com/ai.zip");
     assert_eq!(ai.max_kernel_version, "*");
+    assert_eq!(ai.category, "ai");
+    assert_eq!(ai.tags, ["llm", "chat"]);
     assert!(!ai.is_revoked());
 
     let evil = parsed.entries.iter().find(|e| e.slug == "evil").unwrap();
     assert_eq!(evil.version, "1.0.0");
     assert_eq!(evil.id, "evil", "id falls back to the slug");
+    assert!(evil.category.is_empty() && evil.tags.is_empty());
     assert!(
         evil.is_revoked(),
         "document-level revoked list folds into entry status"
@@ -554,6 +561,8 @@ fn empty_status_normalizes_to_stable() {
 #[test]
 fn resolves_relative_archive_urls_against_base_url() {
     let mut entries = vec![RegistryEntry {
+        category: String::new(),
+        tags: Vec::new(),
         archive_url: "dist/ai/versions/0.1.0/ai-0.1.0.zip".into(),
         ..make_entry("0.1.0", "*")
     }];
@@ -570,6 +579,8 @@ fn resolves_relative_archive_urls_against_base_url() {
 #[test]
 fn resolves_relative_archive_urls_against_trailing_slash_base() {
     let mut entries = vec![RegistryEntry {
+        category: String::new(),
+        tags: Vec::new(),
         archive_url: "ai.zip".into(),
         ..make_entry("0.1.0", "*")
     }];
@@ -583,6 +594,8 @@ fn resolves_relative_archive_urls_against_trailing_slash_base() {
 #[test]
 fn leaves_absolute_archive_urls_untouched() {
     let mut entries = vec![RegistryEntry {
+        category: String::new(),
+        tags: Vec::new(),
         archive_url: "https://cdn.example.com/ai.zip".into(),
         ..make_entry("0.1.0", "*")
     }];
@@ -593,6 +606,8 @@ fn leaves_absolute_archive_urls_untouched() {
 #[test]
 fn non_url_base_leaves_relative_entries_untouched() {
     let mut entries = vec![RegistryEntry {
+        category: String::new(),
+        tags: Vec::new(),
         archive_url: "dist/ai.zip".into(),
         ..make_entry("0.1.0", "*")
     }];
